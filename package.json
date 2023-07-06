@@ -1,0 +1,22 @@
+{
+  "name": "passkeys_aa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "hardhat": "^2.16.1"
+  },
+  "dependencies": {
+    "@account-abstraction/sdk": "^0.6.0",
+    "ethers": "^5.7.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}
