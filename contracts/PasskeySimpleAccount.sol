@@ -1,53 +1,36 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "@account-abstraction/samples/SimpleAccount.sol";
-import "./IPasskeySimpleAccount.sol";
+import "@account-abstraction/contracts/core/BaseAccount.sol";
+import "@account-abstraction/contracts/samples/SimpleAccount.sol";
+import "./BasePasskeySimpleAccount.sol";
+import "../utils/Base64.sol";
 import "./secp256r1.sol";
 
-contract PasskeySimpleAccount is SimpleAccount, IPasskeySimpleAccount {
-    mapping(bytes32 => PassKeyId) public hashedKeys;
-    bytes32[] private keyHashes;
-
-    constructor(IEntryPoint anEntryPoint) SimpleAccount(anEntryPoint)  {
+contract PasskeySimpleAccount is SimpleAccount, BasePasskeySimpleAccount {
+    
+    constructor(IEntryPoint anEntryPoint) SimpleAccount(anEntryPoint) {
     }
 
     function initialize(uint256 _publicKeyX, uint256 _publicKeyY, string calldata _passKeyID) public virtual initializer {
         _addPassKey(keccak256(abi.encodePacked(_passKeyID)), _publicKeyX, _publicKeyY, _passKeyID);
     }
 
-    function addPassKey(uint256 _publicKeyX, uint256 _publicKeyY, string calldata _passKeyID) external onlyOwner {
-        _addPassKey(keccak256(abi.encodePacked(_passKeyID)), _publicKeyX, _publicKeyY, _passKeyID);
-    }
+     function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash) internal override virtual returns (uint256 validationData) {
+        (bytes32 keyHash, uint256 sigx, uint256 sigy, bytes memory authenticatorData, string memory clientDataJSONPre, string memory clientDataJSONPost) = 
+            abi.decode(userOp.signature, (bytes32, uint256, uint256, bytes, string, string));
 
-    function _addPassKey(bytes32 _keyHash,uint256 _publicKeyX, uint256 _publicKeyY, string calldata _passKeyID) internal {
-        emit PassKeyAdded(_keyHash,_publicKeyX, _publicKeyY, _passKeyID);
-        hashedKeys[_keyHash] = PassKeyId(_publicKeyX, _publicKeyY, _passKeyID);
-        keyHashes.push(_keyHash);
-    }
+        string memory opHashBase64 = Base64.encode(bytes.concat(userOpHash));
+        string memory clientDataJSON = string.concat(clientDataJSONPre, opHashBase64, clientDataJSONPost);
+        bytes32 clientHash = sha256(bytes(clientDataJSON));
+        bytes32 sigHash = sha256(bytes.concat(authenticatorData, clientHash));
 
-    function getPassKey() external view returns(PassKeyId[] memory acceptedKeys) {
-        acceptedKeys = new PassKeyId[](keyHashes.length);
-        for(uint i = 0; i< acceptedKeys.length; i++){
-            acceptedKeys[i] = hashedKeys[keyHashes[i]];
-        }
-        return acceptedKeys;
-    }
+        PassKeyId memory passKey = hashedKeys[keyHash];
+        require(passKey.publicKeyY != 0 && passKey.publicKeyY != 0, "Key not found");
 
-    function deletePassKey(string calldata _passKeyID) external onlyOwner{
-        require(keyHashes.length > 1, "Not allowed to delete the last key!!");
-        bytes32 selectedKeyHash = keccak256(abi.encodePacked(_passKeyID));
-        PassKeyId memory selectedKey = hashedKeys[selectedKeyHash];
-        if(selectedKey.publicKeyX == 0 && selectedKey.publicKeyY == 0){
-            return;
-        }
-        delete hashedKeys[selectedKeyHash];
-        for(uint i = 0; i < keyHashes.length; i++){
-            if(keyHashes[i] == selectedKeyHash){
-                keyHashes[i] = keyHashes[keyHashes.length - 1];
-                keyHashes.pop();
-            }
-        }
-        emit PassKeyDeleted(selectedKeyHash, selectedKey.publicKeyX, selectedKey.publicKeyY, selectedKey.passKeyID);
+        (bool success, bytes memory data) = address(this).call(abi.encodeWithSignature("Verify(bytes32,uint,uint,uint)",passKey, sigx, sigy, uint256(sigHash)));
+
+        require(success == true && data.length == 1 && data[0] != 0x00, "Invalid signature");
+        return 0;
     }
 }

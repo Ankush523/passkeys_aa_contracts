@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "@account-abstraction/interfaces/IAccount.sol";
+import "@account-abstraction/contracts/interfaces/IAccount.sol";
 import "./secp256r1.sol";
 
 interface IPasskeySimpleAccount is IAccount {
