@@ -14,24 +14,24 @@ contract PasskeySimpleAccountFactory{
         accountImplementation = new PasskeySimpleAccount(entryPoint);
     }
 
-    function createAccount(string calldata passKeyID, uint256 publicKeyX, uint256 publicKeyY, uint256 salt) public returns (PasskeySimpleAccount){
-        address userAddr = getAddress(passKeyID, publicKeyX, publicKeyY,salt);
+    function createAccount(uint256 salt, string calldata keyId, uint256 pubKeyX, uint256 pubKeyY) public returns (PasskeySimpleAccount){
+        address userAddr = getAddress(salt, keyId, pubKeyX, pubKeyY);
         uint codeSize = userAddr.code.length;
         if(codeSize > 0){
             return PasskeySimpleAccount(payable(userAddr));
         }
         return PasskeySimpleAccount(payable(new ERC1967Proxy{salt : bytes32(salt)}(
                 address(accountImplementation),
-                abi.encodeCall(PasskeySimpleAccount.initialize,(publicKeyX, publicKeyY,passKeyID))
+                abi.encodeCall(PasskeySimpleAccount.initialize,(keyId, pubKeyX, pubKeyY))
             )));
     }
 
-    function getAddress(string calldata passKeyID, uint256 publicKeyX, uint256 publicKeyY,uint256 salt) public view returns (address) {
+    function getAddress(uint256 salt, string calldata keyId, uint256 pubKeyX, uint256 pubKeyY) public view returns (address) {
         return Create2.computeAddress(bytes32(salt),keccak256(abi.encodePacked(
             type(ERC1967Proxy).creationCode,
             abi.encode(
                 address(accountImplementation),
-                abi.encodeCall(PasskeySimpleAccount.initialize,(publicKeyX, publicKeyY,passKeyID))
+                abi.encodeCall(PasskeySimpleAccount.initialize,(keyId, pubKeyX, pubKeyY))
             )
         )));
     }

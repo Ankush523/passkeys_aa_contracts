@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 struct PassKeyId {
-    uint256 publicKeyX;
-    uint256 publicKeyY;
-    string passKeyID;
+    uint256 pubKeyX;
+    uint256 pubKeyY;
+    string keyId;
 }
 
 struct JacobianPoint {
@@ -77,7 +77,7 @@ library secp256r1 {
     function _preComputeJacobianPoints(PassKeyId memory passKey)internal pure returns (JacobianPoint[16] memory points)
     {
          points[0] = JacobianPoint(0, 0, 0);
-        points[1] = JacobianPoint(passKey.publicKeyX, passKey.publicKeyY, 1); // u2
+        points[1] = JacobianPoint(passKey.pubKeyX, passKey.pubKeyY, 1); // u2
         points[2] = _jPointDouble(points[1]);
         points[3] = _jPointAdd(points[1], points[2]);
 

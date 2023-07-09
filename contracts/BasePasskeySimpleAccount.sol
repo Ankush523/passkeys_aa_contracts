@@ -5,6 +5,7 @@ import "@account-abstraction/contracts/interfaces/IAccount.sol";
 import "./IPasskeySimpleAccount.sol";
 
 abstract contract BasePasskeySimpleAccount is  IAccount, IPasskeySimpleAccount {
+
     mapping(bytes32 => PassKeyId) public hashedKeys;
     bytes32[] private keyHashes;
 
@@ -20,7 +21,7 @@ abstract contract BasePasskeySimpleAccount is  IAccount, IPasskeySimpleAccount {
 
     function getPassKey() external view override returns (PassKeyId[] memory acceptedKeys) {
         acceptedKeys = new PassKeyId[](keyHashes.length);
-        for (uint i = 0; i < acceptedKeys.length; i++) {
+        for (uint i = 0; i < keyHashes.length; i++) {
             acceptedKeys[i] = hashedKeys[keyHashes[i]];
         }
         return acceptedKeys;
@@ -30,7 +31,7 @@ abstract contract BasePasskeySimpleAccount is  IAccount, IPasskeySimpleAccount {
         require(keyHashes.length > 1, "Not allowed to delete the last key!!");
         bytes32 selectedKeyHash = keccak256(abi.encodePacked(_passKeyID));
         PassKeyId memory selectedKey = hashedKeys[selectedKeyHash];
-        if(selectedKey.publicKeyX == 0 && selectedKey.publicKeyY == 0){
+        if(selectedKey.pubKeyX == 0 && selectedKey.pubKeyY == 0){
             return;
         }
         delete hashedKeys[selectedKeyHash];
@@ -40,7 +41,7 @@ abstract contract BasePasskeySimpleAccount is  IAccount, IPasskeySimpleAccount {
                 keyHashes.pop();
             }
         }
-        emit PassKeyDeleted(selectedKeyHash, selectedKey.publicKeyX, selectedKey.publicKeyY, selectedKey.passKeyID);
+        emit PassKeyDeleted(selectedKeyHash, selectedKey.pubKeyX, selectedKey.pubKeyY, selectedKey.keyId);
     }
 
 }

@@ -12,8 +12,8 @@ contract PasskeySimpleAccount is SimpleAccount, BasePasskeySimpleAccount {
     constructor(IEntryPoint anEntryPoint) SimpleAccount(anEntryPoint) {
     }
 
-    function initialize(uint256 _publicKeyX, uint256 _publicKeyY, string calldata _passKeyID) public virtual initializer {
-        _addPassKey(keccak256(abi.encodePacked(_passKeyID)), _publicKeyX, _publicKeyY, _passKeyID);
+    function initialize(string calldata _keyId, uint256 _pubKeyX, uint256 _pubKeyY) public virtual initializer {
+        _addPassKey(keccak256(abi.encodePacked(_keyId)), _pubKeyX, _pubKeyY, _keyId);
     }
 
     function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash) internal override virtual returns (uint256 validationData) {
@@ -26,9 +26,9 @@ contract PasskeySimpleAccount is SimpleAccount, BasePasskeySimpleAccount {
         bytes32 sigHash = sha256(bytes.concat(authenticatorData, clientHash));
 
         PassKeyId memory passKey = hashedKeys[keyHash];
-        require(passKey.publicKeyY != 0 && passKey.publicKeyY != 0, "Key not found");
+        require(passKey.pubKeyX != 0 && passKey.pubKeyY != 0, "Key not found");
 
-        (bool success, bytes memory data) = address(this).call(abi.encodeWithSignature("Verify(bytes32,uint,uint,uint)",passKey, sigx, sigy, uint256(sigHash)));
+        (bool success, bytes memory data) = address(0x5FbDB2315678afecb367f032d93F642f64180aa3).call(abi.encodeWithSignature("Verify(bytes32,uint,uint,uint)",passKey, sigx, sigy, uint256(sigHash)));
 
         require(success == true && data.length == 1 && data[0] != 0x00, "Invalid signature");
         return 0;
