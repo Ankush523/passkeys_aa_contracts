@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@account-abstraction/contracts/core/BaseAccount.sol";
 import "@account-abstraction/contracts/samples/SimpleAccount.sol";
 import "./BasePasskeySimpleAccount.sol";
-import "../utils/Base64.sol";
+import "./utils/Base64.sol";
 import "./secp256r1.sol";
 
 contract PasskeySimpleAccount is SimpleAccount, BasePasskeySimpleAccount {
@@ -16,7 +16,7 @@ contract PasskeySimpleAccount is SimpleAccount, BasePasskeySimpleAccount {
         _addPassKey(keccak256(abi.encodePacked(_passKeyID)), _publicKeyX, _publicKeyY, _passKeyID);
     }
 
-     function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash) internal override virtual returns (uint256 validationData) {
+    function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash) internal override virtual returns (uint256 validationData) {
         (bytes32 keyHash, uint256 sigx, uint256 sigy, bytes memory authenticatorData, string memory clientDataJSONPre, string memory clientDataJSONPost) = 
             abi.decode(userOp.signature, (bytes32, uint256, uint256, bytes, string, string));
 
