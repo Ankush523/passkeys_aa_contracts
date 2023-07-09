@@ -1,12 +1,12 @@
 {
   "name": "passkeys_aa",
   "version": "1.0.0",
-  "description": "",
+  "description": "Passkeys enabled SCW",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["ethereum", "smart-contracts", "solidity", "passkeys"],
   "author": "",
   "license": "ISC",
   "devDependencies": {
